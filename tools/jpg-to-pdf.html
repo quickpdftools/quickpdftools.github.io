@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JPG to PDF Online Free – Convert Images to PDF | QuickPDFTools</title>
+  <meta name="description" content="Convert JPG, PNG, or any image to PDF online for free. No signup. Combine multiple images into one PDF. Instant, private, and 100% free." />
+  <meta name="keywords" content="jpg to pdf, image to pdf, convert jpg to pdf online free, photo to pdf, png to pdf, pictures to pdf" />
+  <link rel="canonical" href="https://quickpdftools.github.io/tools/jpg-to-pdf.html" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="../index.html" class="logo"><span class="logo-icon">⚡</span><span class="logo-text">Quick<strong>PDF</strong>Tools</span></a>
+      <nav class="main-nav">
+        <a href="../index.html#tools">All Tools</a>
+        <a href="../about.html">About</a>
+      </nav>
+      <button class="theme-toggle" id="themeToggle">🌙</button>
+    </div>
+  </header>
+
+  <div class="tool-page">
+    <div class="tool-page-header">
+      <a href="../index.html" class="back">← Back to All Tools</a>
+      <h1>📸 JPG to PDF</h1>
+      <p>Convert one or multiple images (JPG, PNG, WebP) into a PDF document. Free & instant.</p>
+    </div>
+
+    <div class="ad-placeholder" style="margin-bottom:24px;">Advertisement</div>
+
+    <div id="dropZone" class="drop-zone">
+      <div class="drop-icon">🖼️</div>
+      <p><strong>Click to select images</strong> or drag & drop here</p>
+      <p style="font-size:0.78rem;margin-top:6px;">JPG, PNG, WebP, GIF supported • Select multiple images</p>
+      <input type="file" id="fileInput" accept="image/*" multiple />
+    </div>
+
+    <div id="previewGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:12px;margin-top:16px;"></div>
+
+    <div id="settings" style="display:none;margin-top:20px;">
+      <p style="font-weight:600;margin-bottom:12px;font-family:var(--font-display);">Page Size</p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <label class="compression-opt"><input type="radio" name="pageSize" value="a4" checked /> A4</label>
+        <label class="compression-opt"><input type="radio" name="pageSize" value="letter" /> Letter</label>
+        <label class="compression-opt"><input type="radio" name="pageSize" value="fit" /> Fit to Image</label>
+      </div>
+      <div class="action-row" style="margin-top:20px;">
+        <button class="btn" onclick="convertToPDF()">📄 Convert to PDF</button>
+        <button class="btn btn-secondary" onclick="clearAll()">🗑️ Clear All</button>
+      </div>
+    </div>
+
+    <div class="progress-bar-wrap" id="progressWrap" style="display:none">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div id="resultBox" class="result-box" style="display:none">
+      <h3>✅ Converted Successfully!</h3>
+      <p id="resultInfo"></p>
+      <div class="action-row" style="justify-content:center;margin-top:16px">
+        <button class="btn" id="downloadBtn">⬇️ Download PDF</button>
+        <button class="btn btn-secondary" onclick="clearAll()">Convert More</button>
+      </div>
+    </div>
+
+    <div class="ad-placeholder" style="margin:32px 0;">Advertisement</div>
+
+    <div class="how-to">
+      <h2>How to Convert Images to PDF</h2>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-text"><h4>Select Images</h4><p>Upload JPG, PNG, or other image files. Select multiple to combine into one PDF.</p></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-text"><h4>Choose Page Size</h4><p>Select A4, Letter, or fit-to-image sizing for your PDF pages.</p></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-text"><h4>Download PDF</h4><p>Click convert and download your PDF with all images embedded.</p></div></div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="footer-bottom container">
+      <p>© 2025 QuickPDFTools. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+  <script src="../js/main.js"></script>
+  <script>
+    let imageFiles = [];
+    const style = document.createElement('style');
+    style.textContent = `.compression-opt { display:flex;align-items:center;gap:8px;padding:10px 16px;border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:0.88rem;background:var(--card-bg);transition:border-color 0.2s; } .compression-opt:has(input:checked) { border-color:var(--accent);background:rgba(230,57,70,0.05); } .preview-thumb { border-radius:8px;aspect-ratio:1;object-fit:cover;width:100%;border:1px solid var(--border); }`;
+    document.head.appendChild(style);
+
+    initDropZone('dropZone', 'fileInput', files => {
+      const imgs = files.filter(f => f.type.startsWith('image/'));
+      if (!imgs.length) return alert('Please select image files.');
+      imageFiles = imageFiles.concat(imgs);
+      renderPreviews();
+    });
+
+    function renderPreviews() {
+      const grid = document.getElementById('previewGrid');
+      grid.innerHTML = '';
+      imageFiles.forEach((f, i) => {
+        const url = URL.createObjectURL(f);
+        const wrap = document.createElement('div');
+        wrap.style.position = 'relative';
+        wrap.innerHTML = `<img src="${url}" class="preview-thumb" /><button onclick="removeImg(${i})" style="position:absolute;top:4px;right:4px;background:var(--accent);color:white;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:0.7rem;display:flex;align-items:center;justify-content:center;">✕</button><p style="font-size:0.65rem;text-align:center;margin-top:4px;color:var(--text2);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${f.name}</p>`;
+        grid.appendChild(wrap);
+      });
+      document.getElementById('settings').style.display = imageFiles.length ? 'block' : 'none';
+      document.getElementById('resultBox').style.display = 'none';
+    }
+
+    function removeImg(i) { imageFiles.splice(i, 1); renderPreviews(); }
+    function clearAll() { imageFiles = []; renderPreviews(); document.getElementById('progressWrap').style.display = 'none'; }
+
+    async function convertToPDF() {
+      if (!imageFiles.length) return;
+      const pageSize = document.querySelector('input[name="pageSize"]:checked').value;
+      const wrap = document.getElementById('progressWrap');
+      wrap.style.display = 'block'; showProgress(5);
+
+      try {
+        const { PDFDocument, PageSizes } = PDFLib;
+        const pdf = await PDFDocument.create();
+
+        for (let i = 0; i < imageFiles.length; i++) {
+          const f = imageFiles[i];
+          const bytes = await f.arrayBuffer();
+          let img;
+          if (f.type === 'image/png') img = await pdf.embedPng(bytes);
+          else img = await pdf.embedJpg(bytes);
+
+          let w, h;
+          if (pageSize === 'a4') { w = 595; h = 842; }
+          else if (pageSize === 'letter') { w = 612; h = 792; }
+          else { w = img.width; h = img.height; }
+
+          const page = pdf.addPage([w, h]);
+          const scale = Math.min(w / img.width, h / img.height);
+          const dw = img.width * scale, dh = img.height * scale;
+          page.drawImage(img, { x: (w - dw) / 2, y: (h - dh) / 2, width: dw, height: dh });
+          showProgress(5 + ((i + 1) / imageFiles.length) * 90);
+        }
+
+        const saved = await pdf.save();
+        showProgress(100);
+        const blob = new Blob([saved], { type: 'application/pdf' });
+        document.getElementById('resultInfo').textContent = `${imageFiles.length} image(s) converted • ${pdf.getPageCount()} pages • ${formatSize(blob.size)}`;
+        document.getElementById('downloadBtn').onclick = () => triggerDownload(blob, 'images.pdf');
+        document.getElementById('resultBox').style.display = 'block';
+        wrap.style.display = 'none';
+      } catch (e) {
+        wrap.style.display = 'none';
+        alert('Error converting images. ' + e.message);
+      }
+    }
+  </script>
+</body>
+</html>
